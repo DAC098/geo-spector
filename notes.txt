@@ -1,0 +1,23 @@
+stl-splitter: possible source of for slicing an stl model. will require a deeper
+dive as I currently do not know if there is a repsitory available to reference.
+the code is available on the site and is not minified or obscured so it can be
+referenced.
+
+site source: https://www.stl-splitter.com/
+
+the original python code found that looked like it could work was having trouble
+running on arch linux (running into segfaults when attempt to render the
+window).
+
+source: https://github.com/evanchodora/stl-slicer
+
+found some 3D tooling that could be able to help achieve a similar goal but was
+also encountering issues when attempting to try out one of their examples that
+slices a cube on a plane.
+
+source: https://github.com/cutdigital/mcut
+
+right now the stl-splitter site looks the most promising but will take some time
+to convert over to c++ unless we can come up with an alternative or get a
+library of somekind to work that is not an application in of itself.
+
