@@ -21,3 +21,8 @@ right now the stl-splitter site looks the most promising but will take some time
 to convert over to c++ unless we can come up with an alternative or get a
 library of somekind to work that is not an application in of itself.
 
+-----
+
+some possible ideas would be to look into OpenMesh and lib3mf from rust and
+exposing a c api or... just use rust for the project. it would help with
+managing dependencies and alieviate some other issues.
