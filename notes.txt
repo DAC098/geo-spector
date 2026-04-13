@@ -26,3 +26,14 @@ library of somekind to work that is not an application in of itself.
 some possible ideas would be to look into OpenMesh and lib3mf from rust and
 exposing a c api or... just use rust for the project. it would help with
 managing dependencies and alieviate some other issues.
+
+-----
+
+another idea is to use Blender and create a recreation of our scene with camera
+positions setup
+1. load the stl and place it at a point
+2. slice the model at the height we need
+3. switch to the differenct camera perspectives and take a picture from that
+perspective
+4. load the screen shot to the opencv application for that camera and perform
+the verification from that step
