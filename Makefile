@@ -3,8 +3,7 @@ SRC_DIR=src
 OBJ_DIR=obj
 BIN_DIR=bin
 
-#INCLUDE_DIRS = -I/usr/include/opencv4
-INCLUDE_DIRS =  -I$(INC_DIR)
+INCLUDE_DIRS =  -I$(INC_DIR) -I/usr/include/opencv4
 
 LIB_DIRS = 
 CPPC=g++
@@ -29,7 +28,7 @@ EXE=$(BIN_DIR)/main
 
 CPP_DEFS=
 CPP_FLAGS=--std=c++17 -Wall -Werror $(INCLUDE_DIRS) $(CPP_DEFS)
-LIBS=-lpthread -L/usr/lib
+LIBS=-lpthread -L/usr/lib -lopencv_core -lopencv_flann -lopencv_video -lrt
 
 CPP_SRCS=$(wildcard $(SRC_DIR)/*.cpp)
 CPP_OBJS=$(CPP_SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
@@ -39,12 +38,12 @@ CPP_OBJS=$(CPP_SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 .PHONY: all clean
 
-all: $(EXE)
+all: $(EXE) $(USB_EXE)
 
 # the BIN_DIR at the end will mark the target as requiring it but is not the
 # same as the file requirements
 $(EXE): $(CPP_OBJS) $(CUDA_OBJS) | $(BIN_DIR)
-	$(CPPC) $(CPP_FLAGS) -o $@ $^ $(LIBS)
+	$(CPPC) $(CPP_FLAGS) -o $@ $^ `pkg-config --libs opencv4` $(LIBS)
 
 # place back in the above target when opencv is on the system
 #$(CPPC) $(CPP_FLAGS) -o $@ $^ `pkg-config --libs opencv4` $(LIBS)

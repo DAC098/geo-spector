@@ -9,27 +9,176 @@
 #include <exception>
 #include <iostream>
 #include <utility>
+#include <filesystem>
+#include <memory>
+#include <sstream>
+#include <tuple>
+#include <fstream>
+#include <unordered_map>
 
 #include <CLI11.hpp>
 #include <stl_reader.hpp>
+#include <json.hpp>
+
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+
+#include "usb.hpp"
+#include "cameras.hpp"
 
 struct MinMax {
     float min = -INFINITY;
     float max = INFINITY;
-}
+};
 
 struct StlBounds {
     MinMax x;
     MinMax y;
     MinMax z;
-}
+};
 
 StlBounds compute_bounds(
     const std::vector<float> triangles,
-    const std::vector<unsigned int> coords,
+    const std::vector<unsigned int> coords
 );
 
+struct CaptureDevice {
+    cv::VideoCapture vcap;
+    CameraInfo info;
+};
+
 int main(int argc, char** argv) {
+    CLI::App app{"camera-loader"};
+    argv = app.ensure_utf8(argv);
+
+    std::string camera_json = "";
+
+    app.add_option("-c,--cameras", camera_json, "the json dictionary of camers for the device");
+
+    CLI11_PARSE(app, argc, argv);
+
+    if (camera_json.empty()) {
+        std::cout << "no json file specified\n";
+
+        return 1;
+    }
+
+    std::vector<CameraInfo> cameras = load_camera_data(camera_json);
+    std::vector<CaptureDevice> devices;
+    std::vector<cv::Mat> mats;
+
+    for (auto info : cameras) {
+        cv::VideoCapture vcap;
+
+        if (!vcap.open(info.id)) {
+            std::cout << "failed to open camera: " << info.id << " " << info.serial << "\n";
+            continue;
+        }
+
+        CaptureDevice dev;
+        dev.vcap = vcap;
+        dev.info = info;
+
+        devices.push_back(dev);
+        mats.push_back({});
+    }
+
+    if (devices.empty()) {
+        std::cout << "no capture devices loaded\n";
+
+        return 1;
+    }
+
+    while (true) {
+        for (std::size_t index = 0; index < devices.size(); index += 1) {
+            devices[index].vcap.read(mats[index]);
+        }
+
+        for (std::size_t index = 0; index < devices.size(); index += 1) {
+            cv::imshow(devices[index].info.serial, mats[index]);
+        }
+
+        char c = cv::waitKey(60);
+
+        if (c == 'q') {
+            break;
+        }
+    }
+
+    return 0;
+    /*
+    std::ifstream json_file = std::ifstream(camera_json);
+
+    if (!json_file.is_open()) {
+        std::cout << "failed to open json file\n";
+
+        return 1;
+    }
+
+    nlohmann::json data;
+
+    try {
+        data = nlohmann::json::parse(json_file);
+    } catch (nlohmann::json::parse_error const& err) {
+        std::cout << "failed to parse json file\n" << err.what() << "\n";
+
+        return 1;
+    }
+
+    if (!data.is_object()) {
+        std::cout << "invalid json structure. expecting object\n";
+
+        return 1;
+    }
+
+    std::unordered_map<std::string, nlohmann::json> dict;
+    data.get_to(dict);
+
+    std::unordered_map<std::string, int> serial_index;
+    auto capture_devices = find_capture_devices();
+
+    if (capture_devices.empty()) {
+        std::cout << "no capture devices found\n";
+
+        return 0;
+    } else {
+        for (const auto& device : capture_devices) {
+            serial_index.insert({std::get<1>(device), std::get<0>(device)});
+        }
+    }
+
+    for (const auto& [name, info] : dict) {
+        std::cout << "checking: \"" << name << "\"\n";
+
+        if (!info.is_object()) {
+            std::cout << "key: \"" << name << "\" is not an object\n";
+            continue;
+        }
+
+        std::string serial;
+
+        std::cout << "checking serial\n";
+
+        if (info.contains("serial")) {
+            info["serial"].get_to(serial);
+        }
+
+        if (serial.empty()) {
+            std::cout << "missing usb serial id \"" << name << "\"\n";
+        } else {
+            auto found = serial_index.find(serial);
+
+            if (found == serial_index.end()) {
+                std::cout << "camera device not found: \"" << name << "\"\n";
+            } else {
+                std::cout << "camer device found: \"" << name << "\" id: " << found->second << "\n";
+            }
+        }
+    }
+    */
+}
+
+int stl_main(int argc, char** argv) {
     CLI::App app{"geo-spector"};
     argv = app.ensure_utf8(argv);
 
@@ -116,9 +265,9 @@ int main(int argc, char** argv) {
 
 StlBounds compute_bounds(
     const std::vector<float> triangles,
-    const std::vector<unsigned int> coords,
+    const std::vector<unsigned int> coords
 ) {
     StlBounds rtn;
 
-    
+    return rtn;
 }
